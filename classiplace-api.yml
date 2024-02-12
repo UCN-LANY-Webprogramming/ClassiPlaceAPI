@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Classified Listings - ClassiPlace
+  version: 1.0.0
+  description: |- 
+    This is a sample API for classifieds listings based on the OpenAPI 3.0.3 specification. It should only be used 
+    for educational purposes, and is not intended for commercial use. 
+    Some useful links: 
+    - [OpenAPI specification](https://swagger.io/specification/)
+    - [Swagger Editor](https://editor.swagger.io/)
+    - [Learn OpenAPI](https://learn.openapis.org/)
+  termsOfService: https://mit-license.org/
+  contact: 
+    email: lany@ucn.dk
+  license: 
+    name: MIT
+    url: https://mit-license.org/  
+servers:
+  - url: https://api.classiplace.test/v1
+tags: 
+  - name: Listings
+    description: All about listings
+  - name: Tags
+    description: All about tags used for categorizing
+paths:
+  /listings:
+    get:
+      tags: 
+        - Listings
+      summary: Get all listings
+      description: Retrieves the current active listings in the system that matches the search criteria.
+      parameters:
+        - name: PostalCode
+          in: query
+          description: Limits the search to be within a specifik postal code. Can be a comma separated list of several postal codes.
+          schema:
+            type: string
+        - name: searchString
+          in: query
+          description: String to search for in the listing descriptions or title.
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Comma separated list of tags
+          schema: 
+            type: array
+            items: 
+              type: string
+        - name: user
+          in: query
+          description: The username of a listings owner. Limits the results to the listings of the specific user.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                   $ref: '#/components/schemas/searchResult'
+        '204':
+          description: No listings found within search parameters
+    post:
+      tags: 
+        - Listings
+      summary: Creates a new ad
+      description: Creates an ad with the parameters supplied.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/listing'
+      responses:
+        '201':
+          description: The ad was created
+  /listings/{id}:
+    get: 
+      tags: 
+        - Listings
+      summary: Get a specific listing
+      description: Retrieves the listing with the specified id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/listing'
+        '204':
+          description: No Content       
+    put:
+      tags: 
+        - Listings
+      summary: Updates an ad
+      description: Update an existing listing by id, if the current user owns it
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Listing not found
+        '422':
+          description: Validation exception          
+    delete:
+      tags: 
+        - Listings
+      summary: Deletes an ad
+      description: Deletes the ad with the supplied id, if the current user owns it
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: The ad was deleted
+  /tags:
+    get:
+      tags: 
+        - Tags
+      summary: Get a list of tags used for categorizing listings.
+      description: Retrives the complete list of tags available. Use one or more tags to make a listing easier to find in a search. New tags can be created when adding a new listing
+      responses:
+        '200':
+          description: OK
+components:
+  requestBodies:
+    listing:
+      description: Listing that needs to be added or updated
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ad'
+  schemas:
+    searchResult:
+      type: array
+      items: 
+        $ref: '#/components/schemas/listing'
+    listing:
+      type: object
+      properties:
+        uri:        
+          type: string
+          description: The resource identifier for the listing
+        meta:
+          type: object
+          properties:
+            created:
+              type: string
+            updated:
+              type: string
+            expires:
+              type: string
+            viewed:
+              type: integer
+        ad:
+          $ref: '#/components/schemas/ad'            
+    ad:
+      type: object
+      properties:
+        tags: 
+          type: array
+          items: 
+            type: string
+        user:
+          type: string
+        postalCode:
+          type: string
+        title:  
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+
